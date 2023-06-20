@@ -53,10 +53,11 @@ text = '''
 "[KO]가장 밝게 빛나는 순간은 주위의 모든 것이 가장 어두울 때이다.[KO]"
 '''
 
+print(text)
+
 for idx in range(5):
     sid = torch.LongTensor([idx]).cuda()
     stn_tst, attention_mask = get_inputs(text, model, tokenizer_xphonebert)
-    print(text)
     with torch.no_grad():
         x_tst = stn_tst.cuda().unsqueeze(0)
         attention_mask = attention_mask.cuda().unsqueeze(0)
