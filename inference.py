@@ -15,7 +15,6 @@ def main():
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     for line in iter(process.stdout.readline, b''):
-        # Data is available, so print it
         print(line.decode('utf-8'), end='')
 
     process.stdout.close()
