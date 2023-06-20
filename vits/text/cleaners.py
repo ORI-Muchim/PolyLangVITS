@@ -180,12 +180,12 @@ def chinese_dialect_cleaners(text):
 def korean_cleaners2(text):
     text = latin_to_hangul(text)
     text = number_to_hangul(text)
-    phonemes = phonemize(text, language='kor', backend='espeak', strip=True, preserve_punctuation=True, with_stress=True)
+    phonemes = phonemize(text, language='kor', backend='festival', strip=True, preserve_punctuation=True, with_stress=True)
     phonemes = collapse_whitespace(phonemes)
     return phonemes
 
 def japanese_cleaners2(text):
-    phonemes = phonemize(text, language='jpn', backend='espeak', strip=True, preserve_punctuation=True, with_stress=True)
+    phonemes = phonemize(text, language='jpn', backend='festival', strip=True, preserve_punctuation=True, with_stress=True)
     phonemes = collapse_whitespace(phonemes)
     return phonemes
 
@@ -194,13 +194,13 @@ def english_cleaners2(text):
   text = convert_to_ascii(text)
   text = lowercase(text)
   text = expand_abbreviations(text)
-  phonemes = phonemize(text, language='en-us', backend='espeak', strip=True, preserve_punctuation=True, with_stress=True)
+  phonemes = phonemize(text, language='en-us', backend='festival', strip=True, preserve_punctuation=True, with_stress=True)
   phonemes = collapse_whitespace(phonemes)
   return phonemes
 
 def chinese_cleaners2(text):
    text = re.sub(r'([ˉˊˇˋ˙])$', r'\1。', text)
-   phonemes = phonemize(text, language='zho-s', backend='espeak', strip=True, preserve_punctuation=True, with_stress=True)
+   phonemes = phonemize(text, language='zho-s', backend='festival', strip=True, preserve_punctuation=True, with_stress=True)
    phonemes = collapse_whitespace(phonemes)
    return phonemes
    
