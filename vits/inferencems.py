@@ -58,4 +58,4 @@ for idx in range(5):
         attention_mask = attention_mask.cuda().unsqueeze(0)
         audio = net_g.infer(x_tst, attention_mask, sid=sid, noise_scale=.667, noise_scale_w=0.8, length_scale=1)[0][0,0].data.cpu().float().numpy()
     write(f'{output_dir}/output{idx}.wav', hps.data.sampling_rate, audio)
-    print(f'{output_dir}/output{idx}.wav 생성완료!')
+    print(f'{output_dir}/output{idx}.wav Generated!')
