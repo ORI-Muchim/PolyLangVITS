@@ -206,14 +206,14 @@ def chinese_cleaners2(text):
    
 
 def ipa_cleaners(text):
-    if text.startswith('[KO]') and text.endswith('[KO]'):
+    if '[KO]' in text:
         cleaned_text = korean_cleaners2(text[4:-4]) # Strip [KO] from both ends
-    elif text.startswith('[JA]') and text.endswith('[JA]'):
+    if '[JA]' in text:
         cleaned_text = japanese_cleaners2(text[4:-4]) # Strip [JA] from both ends
-    elif text.startswith('[EN]') and text.endswith('[EN]'):
-        cleaned_text = english_cleaners2(text[4:-4])
-    elif text.startswith('[ZH]') and text.endswith('[ZH]'):
-        cleaned_text = chinese_cleaners2(text[4:-4])
+    if '[EN]' in text:
+        cleaned_text = english_cleaners2(text[4:-4]) # Strip [EN] from both ends
+    if '[ZH]' in text:
+        cleaned_text = chinese_cleaners2(text[4:-4]) # Strip [ZN] from both ends
     else:
         print("Please make sure your text starts and ends with either [KO], [JA], [EN] or [ZH].")
         return None
