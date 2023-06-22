@@ -1,6 +1,6 @@
 - # PolyLangVITS(Work In Process)
 
-Multilingual Speech Synthesis System Using [VITS](https://github.com/jaywalnut310/vits) and [XPhoneBERT](https://github.com/VinAIResearch/XPhoneBERT).
+Multilingual Speech Synthesis System Using [VITS](https://github.com/jaywalnut310/vits)
 
 
 ## Table of Contents 
@@ -75,7 +75,7 @@ Place the audio files as follows.
 You must write '[language code]' on the back of the speaker folder.
 
 ```
-One-Click-VITS-Training
+PolyLangVITS
 ├────datasets
 │       ├───speaker0[KO]
 │       │   ├────1.mp3
@@ -139,4 +139,3 @@ For more information, please refer to the following repositories:
 - [CjangCjengh/vits](https://github.com/CjangCjengh/vits.git)
 - [Kyubyong/g2pK](https://github.com/Kyubyong/g2pK)
 - [tenebo/g2pk2](https://github.com/tenebo/g2pk2)
-- [VinAIResearch/XPhoneBERT](https://github.com/VinAIResearch/XPhoneBERT)
