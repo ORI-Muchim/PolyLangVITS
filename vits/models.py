@@ -12,7 +12,6 @@ import monotonic_align
 from torch.nn import Conv1d, ConvTranspose1d, AvgPool1d, Conv2d
 from torch.nn.utils import weight_norm, remove_weight_norm, spectral_norm
 from commons import init_weights, get_padding
-from transformers import AutoTokenizer, AutoModel
 
 
 class StochasticDurationPredictor(nn.Module):
@@ -135,30 +134,46 @@ class DurationPredictor(nn.Module):
 
 class TextEncoder(nn.Module):
   def __init__(self,
-      bert,
+      n_vocab,
       out_channels,
       hidden_channels,
+      filter_channels,
+      n_heads,
+      n_layers,
+      kernel_size,
       p_dropout):
     super().__init__()
+    self.n_vocab = n_vocab
     self.out_channels = out_channels
-    self.bert = AutoModel.from_pretrained(bert)
-    
-    #for child in self.bert.children():
-    #    for param in child.parameters():
-    #        param.requires_grad = False
-    self.linear = nn.Linear(self.bert.config.hidden_size, hidden_channels, False)
-    self.proj= nn.Conv1d(hidden_channels, out_channels * 2, 1)
-    self.dropout = nn.Dropout(p_dropout)
+    self.hidden_channels = hidden_channels
+    self.filter_channels = filter_channels
+    self.n_heads = n_heads
+    self.n_layers = n_layers
+    self.kernel_size = kernel_size
+    self.p_dropout = p_dropout
 
-  def forward(self, x, attention_mask):
-    x = self.bert(input_ids=x, attention_mask=attention_mask)[0]
-    x = self.linear(x)
-    x = torch.transpose(x, 1, -1)
-    attention_mask = attention_mask.unsqueeze(1).to(x.dtype)
-    stats = self.proj(x) * attention_mask
+    self.emb = nn.Embedding(n_vocab, hidden_channels)
+    nn.init.normal_(self.emb.weight, 0.0, hidden_channels**-0.5)
+
+    self.encoder = attentions.Encoder(
+      hidden_channels,
+      filter_channels,
+      n_heads,
+      n_layers,
+      kernel_size,
+      p_dropout)
+    self.proj= nn.Conv1d(hidden_channels, out_channels * 2, 1)
+
+  def forward(self, x, x_lengths):
+    x = self.emb(x) * math.sqrt(self.hidden_channels) # [b, t, h]
+    x = torch.transpose(x, 1, -1) # [b, h, t]
+    x_mask = torch.unsqueeze(commons.sequence_mask(x_lengths, x.size(2)), 1).to(x.dtype)
+
+    x = self.encoder(x * x_mask, x_mask)
+    stats = self.proj(x) * x_mask
 
     m, logs = torch.split(stats, self.out_channels, dim=1)
-    return x, m, logs, attention_mask
+    return x, m, logs, x_mask
 
 
 class ResidualCouplingBlock(nn.Module):
@@ -378,7 +393,7 @@ class SynthesizerTrn(nn.Module):
   """
 
   def __init__(self, 
-    bert,
+    n_vocab,
     spec_channels,
     segment_size,
     inter_channels,
@@ -400,6 +415,7 @@ class SynthesizerTrn(nn.Module):
     **kwargs):
 
     super().__init__()
+    self.n_vocab = n_vocab
     self.spec_channels = spec_channels
     self.inter_channels = inter_channels
     self.hidden_channels = hidden_channels
@@ -420,9 +436,13 @@ class SynthesizerTrn(nn.Module):
 
     self.use_sdp = use_sdp
 
-    self.enc_p = TextEncoder(bert,
+    self.enc_p = TextEncoder(n_vocab,
         inter_channels,
         hidden_channels,
+        filter_channels,
+        n_heads,
+        n_layers,
+        kernel_size,
         p_dropout)
     self.dec = Generator(inter_channels, resblock, resblock_kernel_sizes, resblock_dilation_sizes, upsample_rates, upsample_initial_channel, upsample_kernel_sizes, gin_channels=gin_channels)
     self.enc_q = PosteriorEncoder(spec_channels, inter_channels, hidden_channels, 5, 1, 16, gin_channels=gin_channels)
@@ -436,11 +456,9 @@ class SynthesizerTrn(nn.Module):
     if n_speakers > 1:
       self.emb_g = nn.Embedding(n_speakers, gin_channels)
 
-  def forward(self, x, attention_mask, y, y_lengths, sid=None):
-    #print(x)
-    x, m_p, logs_p, x_mask = self.enc_p(x, attention_mask)
-    #print(x)
-    #print(x_mask)
+  def forward(self, x, x_lengths, y, y_lengths, sid=None):
+
+    x, m_p, logs_p, x_mask = self.enc_p(x, x_lengths)
     if self.n_speakers > 0:
       g = self.emb_g(sid).unsqueeze(-1) # [b, h, 1]
     else:
@@ -448,7 +466,7 @@ class SynthesizerTrn(nn.Module):
 
     z, m_q, logs_q, y_mask = self.enc_q(y, y_lengths, g=g)
     z_p = self.flow(z, y_mask, g=g)
-    
+
     with torch.no_grad():
       # negative cross-entropy
       s_p_sq_r = torch.exp(-2 * logs_p) # [b, d, t]
@@ -469,7 +487,7 @@ class SynthesizerTrn(nn.Module):
       logw_ = torch.log(w + 1e-6) * x_mask
       logw = self.dp(x, x_mask, g=g)
       l_length = torch.sum((logw - logw_)**2, [1,2]) / torch.sum(x_mask) # for averaging 
-    
+
     # expand prior
     m_p = torch.matmul(attn.squeeze(1), m_p.transpose(1, 2)).transpose(1, 2)
     logs_p = torch.matmul(attn.squeeze(1), logs_p.transpose(1, 2)).transpose(1, 2)
@@ -478,8 +496,8 @@ class SynthesizerTrn(nn.Module):
     o = self.dec(z_slice, g=g)
     return o, l_length, attn, ids_slice, x_mask, y_mask, (z, z_p, m_p, logs_p, m_q, logs_q)
 
-  def infer(self, x, attention_mask, sid=None, noise_scale=1, length_scale=1, noise_scale_w=1., max_len=None):
-    x, m_p, logs_p, x_mask = self.enc_p(x, attention_mask)
+  def infer(self, x, x_lengths, sid=None, noise_scale=1, length_scale=1, noise_scale_w=1., max_len=None):
+    x, m_p, logs_p, x_mask = self.enc_p(x, x_lengths)
     if self.n_speakers > 0:
       g = self.emb_g(sid).unsqueeze(-1) # [b, h, 1]
     else:
@@ -494,7 +512,7 @@ class SynthesizerTrn(nn.Module):
     y_lengths = torch.clamp_min(torch.sum(w_ceil, [1, 2]), 1).long()
     y_mask = torch.unsqueeze(commons.sequence_mask(y_lengths, None), 1).to(x_mask.dtype)
     attn_mask = torch.unsqueeze(x_mask, 2) * torch.unsqueeze(y_mask, -1)
-    attn = commons.generate_path(w_ceil, attn_mask).type(torch.cuda.FloatTensor)
+    attn = commons.generate_path(w_ceil, attn_mask)
 
     m_p = torch.matmul(attn.squeeze(1), m_p.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
     logs_p = torch.matmul(attn.squeeze(1), logs_p.transpose(1, 2)).transpose(1, 2) # [b, t', t], [b, t, d] -> [b, d, t']
@@ -513,3 +531,4 @@ class SynthesizerTrn(nn.Module):
     z_hat = self.flow(z_p, y_mask, g=g_tgt, reverse=True)
     o_hat = self.dec(z_hat * y_mask, g=g_tgt)
     return o_hat, y_mask, (z, z_p, z_hat)
+

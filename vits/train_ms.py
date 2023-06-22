@@ -13,7 +13,6 @@ import torch.multiprocessing as mp
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.cuda.amp import autocast, GradScaler
-from transformers import AutoTokenizer, AutoModel
 
 import librosa
 import logging
@@ -51,7 +50,7 @@ def main():
 
   n_gpus = torch.cuda.device_count()
   os.environ['MASTER_ADDR'] = 'localhost'
-  os.environ['MASTER_PORT'] = '9999'
+  os.environ['MASTER_PORT'] = '8000'
 
   hps = utils.get_hparams()
   mp.spawn(run, nprocs=n_gpus, args=(n_gpus, hps,))
@@ -66,14 +65,11 @@ def run(rank, n_gpus, hps):
     writer = SummaryWriter(log_dir=hps.model_dir)
     writer_eval = SummaryWriter(log_dir=os.path.join(hps.model_dir, "eval"))
 
-  dist.init_process_group(backend='gloo' if os.name == 'nt' else 'nccl', init_method='env://', world_size=n_gpus, rank=rank)
+  dist.init_process_group(backend='gloo', init_method='env://', world_size=n_gpus, rank=rank)
   torch.manual_seed(hps.train.seed)
   torch.cuda.set_device(rank)
 
-  tokenizer = AutoTokenizer.from_pretrained(hps.bert)
-  # bert = AutoModel.from_pretrained(hps.bert)
-
-  train_dataset = TextAudioSpeakerLoader(hps.data.training_files, hps.data, tokenizer)
+  train_dataset = TextAudioSpeakerLoader(hps.data.training_files, hps.data)
   train_sampler = DistributedBucketSampler(
       train_dataset,
       hps.train.batch_size,
@@ -82,32 +78,33 @@ def run(rank, n_gpus, hps):
       rank=rank,
       shuffle=True)
   collate_fn = TextAudioSpeakerCollate()
-  train_loader = DataLoader(train_dataset, num_workers=4, shuffle=False, pin_memory=True,
+  train_loader = DataLoader(train_dataset, num_workers=8, shuffle=False, pin_memory=True,
       collate_fn=collate_fn, batch_sampler=train_sampler)
   if rank == 0:
-    eval_dataset = TextAudioSpeakerLoader(hps.data.validation_files, hps.data, tokenizer)
-    eval_loader = DataLoader(eval_dataset, num_workers=4, shuffle=False,
+    eval_dataset = TextAudioSpeakerLoader(hps.data.validation_files, hps.data)
+    eval_loader = DataLoader(eval_dataset, num_workers=8, shuffle=False,
         batch_size=hps.train.batch_size, pin_memory=True,
         drop_last=False, collate_fn=collate_fn)
 
-    net_g = SynthesizerTrn(
-        hps.bert,
-        hps.data.filter_length // 2 + 1,
-        hps.train.segment_size // hps.data.hop_length,
-        **hps.model).cuda(rank)
-    net_d = MultiPeriodDiscriminator(hps.model.use_spectral_norm).cuda(rank)
-    optim_g = torch.optim.AdamW(
-        net_g.parameters(),
-        hps.train.learning_rate,
-        betas=hps.train.betas,
-        eps=hps.train.eps)
-    optim_d = torch.optim.AdamW(
-        net_d.parameters(),
-        hps.train.learning_rate,
-        betas=hps.train.betas,
-        eps=hps.train.eps)
-    net_g = DDP(net_g, device_ids=[rank], find_unused_parameters=True)
-    net_d = DDP(net_d, device_ids=[rank], find_unused_parameters=True)
+  net_g = SynthesizerTrn(
+      len(symbols),
+      hps.data.filter_length // 2 + 1,
+      hps.train.segment_size // hps.data.hop_length,
+      n_speakers=hps.data.n_speakers,
+      **hps.model).cuda(rank)
+  net_d = MultiPeriodDiscriminator(hps.model.use_spectral_norm).cuda(rank)
+  optim_g = torch.optim.AdamW(
+      net_g.parameters(), 
+      hps.train.learning_rate, 
+      betas=hps.train.betas, 
+      eps=hps.train.eps)
+  optim_d = torch.optim.AdamW(
+      net_d.parameters(),
+      hps.train.learning_rate, 
+      betas=hps.train.betas, 
+      eps=hps.train.eps)
+  net_g = DDP(net_g, device_ids=[rank], find_unused_parameters=True)
+  net_d = DDP(net_d, device_ids=[rank], find_unused_parameters=True)
 
   try:
     _, _, _, epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"), net_g, optim_g)
@@ -144,15 +141,15 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
 
   net_g.train()
   net_d.train()
-  for batch_idx, (x, attention_mask, x_lengths, spec, spec_lengths, y, y_lengths, speakers) in enumerate(train_loader):
-    x, attention_mask, x_lengths = x.cuda(rank, non_blocking=True), attention_mask.cuda(rank, non_blocking=True), x_lengths.cuda(rank, non_blocking=True)
+  for batch_idx, (x, x_lengths, spec, spec_lengths, y, y_lengths, speakers) in enumerate(train_loader):
+    x, x_lengths = x.cuda(rank, non_blocking=True), x_lengths.cuda(rank, non_blocking=True)
     spec, spec_lengths = spec.cuda(rank, non_blocking=True), spec_lengths.cuda(rank, non_blocking=True)
     y, y_lengths = y.cuda(rank, non_blocking=True), y_lengths.cuda(rank, non_blocking=True)
     speakers = speakers.cuda(rank, non_blocking=True)
 
     with autocast(enabled=hps.train.fp16_run):
       y_hat, l_length, attn, ids_slice, x_mask, z_mask,\
-      (z, z_p, m_p, logs_p, m_q, logs_q) = net_g(x, attention_mask, spec, spec_lengths, speakers)
+      (z, z_p, m_p, logs_p, m_q, logs_q) = net_g(x, x_lengths, spec, spec_lengths, speakers)
 
       mel = spec_to_mel_torch(
           spec, 
@@ -250,10 +247,8 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
 def evaluate(hps, generator, eval_loader, writer_eval):
     generator.eval()
     with torch.no_grad():
-      if not eval_loader: # If eval_loader is empty
-        raise ValueError("eval_loader is empty") # Raise an exception or handle the situation some other way
-      for batch_idx, (x, attention_mask, x_lengths, spec, spec_lengths, y, y_lengths, speakers) in enumerate(eval_loader):
-        x, attention_mask, x_lengths = x.cuda(0), attention_mask.cuda(0), x_lengths.cuda(0)
+      for batch_idx, (x, x_lengths, spec, spec_lengths, y, y_lengths, speakers) in enumerate(eval_loader):
+        x, x_lengths = x.cuda(0), x_lengths.cuda(0)
         spec, spec_lengths = spec.cuda(0), spec_lengths.cuda(0)
         y, y_lengths = y.cuda(0), y_lengths.cuda(0)
         speakers = speakers.cuda(0)
@@ -261,14 +256,13 @@ def evaluate(hps, generator, eval_loader, writer_eval):
         # remove else
         x = x[:1]
         x_lengths = x_lengths[:1]
-        attention_mask = attention_mask[:1]
         spec = spec[:1]
         spec_lengths = spec_lengths[:1]
         y = y[:1]
         y_lengths = y_lengths[:1]
         speakers = speakers[:1]
         break
-      y_hat, attn, mask, *_ = generator.module.infer(x, attention_mask, speakers, max_len=1000)
+      y_hat, attn, mask, *_ = generator.module.infer(x, x_lengths, speakers, max_len=1000)
       y_hat_lengths = mask.sum([1,2]).long() * hps.data.hop_length
 
       mel = spec_to_mel_torch(

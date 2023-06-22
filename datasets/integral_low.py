@@ -230,8 +230,6 @@ def first_code():
     pass
 
 
-
-
 def second_code():
 
     parent_folder_path = './'
@@ -416,7 +414,7 @@ def create_config():
         "gin_channels": 256
     },
     "speakers": [],
-    "bert": "vinai/xphonebert-base"
+    "symbols": ["_", ",", ".", "!", "?", "-", "~", "\u2026", "N", "Q", "a", "b", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "s", "t", "u", "v", "w", "x", "y", "z", "\u0251", "\u00e6", "\u0283", "\u0291", "\u00e7", "\u026f", "\u026a", "\u0254", "\u025b", "\u0279", "\u00f0", "\u0259", "\u026b", "\u0265", "\u0278", "\u028a", "\u027e", "\u0292", "\u03b8", "\u03b2", "\u014b", "\u0266", "\u207c", "\u02b0", "`", "^", "#", "*", "=", "\u02c8", "\u02cc", "\u2192", "\u2193", "\u2191", " "]
 }
 
     with open("config.json", "w", encoding="utf-8") as file:
@@ -451,13 +449,13 @@ def sixth_code(arg1, arg2):
     config["speakers"] = speakers
 
     if arg1 == "ko":
-        config["data"]["text_cleaners"] = ["ipa_cleaners"]
+        config["data"]["text_cleaners"] = ["cjke_cleaners2"]
     elif arg1 == "ja":
-        config["data"]["text_cleaners"] = ["ipa_cleaners"]
+        config["data"]["text_cleaners"] = ["cjke_cleaners2"]
     elif arg1 == "en":
-        config["data"]["text_cleaners"] = ["ipa_cleaners"]
+        config["data"]["text_cleaners"] = ["cjke_cleaners2"]
     elif arg1 == "zh":
-        config["data"]["text_cleaners"] = ["ipa_cleaners"]
+        config["data"]["text_cleaners"] = ["cjke_cleaners2"]
 
     subdirs = [d for d in os.listdir('.') if os.path.isdir(d)]
     config["data"]["n_speakers"] = len(subdirs)
@@ -549,7 +547,7 @@ def main():
     time.sleep(2.0)
     print("All .wav files have been processed.\n")
 
-    print("Running vits preprocess.py(ipa_cleaners may take some time)...")
+    print("Running vits preprocess.py...")
     time.sleep(1.5)
     vits_preprocess_code(sys.argv[1], sys.argv[2])
     print("The cleaner has successfully processed the text file.\n")

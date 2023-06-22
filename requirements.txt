@@ -30,7 +30,7 @@ Cython==0.29.21
 decorator==5.1.1
 deprecation==2.1.0
 eng-to-ipa==0.0.2
-eunjeon==0.4.0
+#eunjeon
 exceptiongroup==1.1.1
 executing==1.2.0
 eyed3==0.9.6
@@ -104,7 +104,7 @@ pydantic==1.10.7
 pydub==0.25.1
 Pygments==2.14.0
 pylatexenc==2.10
-pyopenjtalk
+#pyopenjtalk
 pyparsing==3.0.9
 pypinyin==0.44.0
 pyreadline3==3.4.1

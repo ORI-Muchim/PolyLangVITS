@@ -1,19 +1,11 @@
 """ from https://github.com/keithito/tacotron """
 from text import cleaners
 from text.symbols import symbols
-import re
-from segments import Tokenizer
 
 
 # Mappings from symbol to numeric ID and vice versa:
 _symbol_to_id = {s: i for i, s in enumerate(symbols)}
 _id_to_symbol = {i: s for i, s in enumerate(symbols)}
-_whitespace_re = re.compile(r'\s+')
-t = Tokenizer()
-
-
-def collapse_whitespace(text):
-  return re.sub(_whitespace_re, ' ', text)
 
 
 def text_to_sequence(text, cleaner_names):
@@ -28,6 +20,8 @@ def text_to_sequence(text, cleaner_names):
 
   clean_text = _clean_text(text, cleaner_names)
   for symbol in clean_text:
+    if symbol not in _symbol_to_id.keys():
+      continue
     symbol_id = _symbol_to_id[symbol]
     sequence += [symbol_id]
   return sequence
@@ -40,17 +34,7 @@ def cleaned_text_to_sequence(cleaned_text):
     Returns:
       List of integers corresponding to the symbols in the text
   '''
-  list_phones = []
-  list_words = cleaned_text.split(' ')
-  for word in list_words:
-    try:
-      list_p = t(word, ipa=True).split(' ')
-    except:
-      list_p = t(word).split(' ')
-    list_phones = list_phones + list_p
-    list_phones = list_phones + [' ']
-  list_phones = list_phones[:-1]
-  sequence = [_symbol_to_id[symbol] for symbol in list_phones]
+  sequence = [_symbol_to_id[symbol] for symbol in cleaned_text if symbol in _symbol_to_id.keys()]
   return sequence
 
 
@@ -70,7 +54,3 @@ def _clean_text(text, cleaner_names):
       raise Exception('Unknown cleaner: %s' % name)
     text = cleaner(text)
   return text
-
-
-if __name__ == '__main__':
-    cleaned_text_to_sequence("˨˨@w @tɕ@iː˨˩ˀ @ɓ@e˨˩ˀ@ɲ @v@iə˨˨@m @ɣ@aː˨˨@n")
