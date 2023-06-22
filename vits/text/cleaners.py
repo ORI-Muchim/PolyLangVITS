@@ -9,6 +9,55 @@ from text.english import english_to_lazy_ipa, english_to_ipa2, english_to_lazy_i
 #from text.shanghainese import shanghainese_to_ipa
 #from text.cantonese import cantonese_to_ipa
 #from text.ngu_dialect import ngu_dialect_to_ipa
+from phonemizer import phonemize
+from unidecode import unidecode
+
+# Regular expression matching whitespace:
+_whitespace_re = re.compile(r'\s+')
+
+# List of (regular expression, replacement) pairs for abbreviations:
+_abbreviations = [(re.compile('\\b%s\\.' % x[0], re.IGNORECASE), x[1]) for x in [
+  ('mrs', 'misess'),
+  ('mr', 'mister'),
+  ('dr', 'doctor'),
+  ('st', 'saint'),
+  ('co', 'company'),
+  ('jr', 'junior'),
+  ('maj', 'major'),
+  ('gen', 'general'),
+  ('drs', 'doctors'),
+  ('rev', 'reverend'),
+  ('lt', 'lieutenant'),
+  ('hon', 'honorable'),
+  ('sgt', 'sergeant'),
+  ('capt', 'captain'),
+  ('esq', 'esquire'),
+  ('ltd', 'limited'),
+  ('col', 'colonel'),
+  ('ft', 'fort'),
+]]
+
+
+def expand_abbreviations(text):
+  for regex, replacement in _abbreviations:
+    text = re.sub(regex, replacement, text)
+  return text
+
+
+def expand_numbers(text):
+  return normalize_numbers(text)
+
+
+def lowercase(text):
+  return text.lower()
+
+
+def collapse_whitespace(text):
+  return re.sub(_whitespace_re, ' ', text)
+
+
+def convert_to_ascii(text):
+  return unidecode(text)
 
 
 def japanese_cleaners(text):
@@ -127,3 +176,45 @@ def chinese_dialect_cleaners(text):
     text = re.sub(r'\s+$', '', text)
     text = re.sub(r'([^\.,!\?\-…~])$', r'\1.', text)
     return text
+
+def korean_cleaners2(text):
+    text = latin_to_hangul(text)
+    text = number_to_hangul(text)
+    phonemes = phonemize(text, language='kor', backend='espeak', strip=True, preserve_punctuation=True, with_stress=True)
+    phonemes = collapse_whitespace(phonemes)
+    return phonemes
+
+def japanese_cleaners2(text):
+    phonemes = phonemize(text, language='jpn', backend='espeak', strip=True, preserve_punctuation=True, with_stress=True)
+    phonemes = collapse_whitespace(phonemes)
+    return phonemes
+
+def english_cleaners2(text):
+  '''Pipeline for English text, including abbreviation expansion. + punctuation + stress'''
+  text = convert_to_ascii(text)
+  text = lowercase(text)
+  text = expand_abbreviations(text)
+  phonemes = phonemize(text, language='en-us', backend='espeak', strip=True, preserve_punctuation=True, with_stress=True)
+  phonemes = collapse_whitespace(phonemes)
+  return phonemes
+
+def chinese_cleaners2(text):
+   text = re.sub(r'([ˉˊˇˋ˙])$', r'\1。', text)
+   phonemes = phonemize(text, language='zho-s', backend='espeak', strip=True, preserve_punctuation=True, with_stress=True)
+   phonemes = collapse_whitespace(phonemes)
+   return phonemes
+   
+
+def ipa_cleaners(text):
+    if '[KO]' in text:
+        cleaned_text = korean_cleaners2(text[4:-4]) # Strip [KO] from both ends
+    if '[JA]' in text:
+        cleaned_text = japanese_cleaners2(text[4:-4]) # Strip [JA] from both ends
+    if '[EN]' in text:
+        cleaned_text = english_cleaners2(text[4:-4]) # Strip [EN] from both ends
+    if '[ZH]' in text:
+        cleaned_text = chinese_cleaners2(text[4:-4]) # Strip [ZN] from both ends
+    else:
+        print("Please make sure your text starts and ends with either [KO], [JA], [EN] or [ZH].")
+        return None
+    return cleaned_text
