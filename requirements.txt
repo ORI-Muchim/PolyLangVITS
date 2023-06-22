@@ -104,7 +104,7 @@ pydantic==1.10.7
 pydub==0.25.1
 Pygments==2.14.0
 pylatexenc==2.10
-#pyopenjtalk
+pyopenjtalk
 pyparsing==3.0.9
 pypinyin==0.44.0
 pyreadline3==3.4.1
