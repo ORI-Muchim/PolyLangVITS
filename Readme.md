@@ -9,7 +9,7 @@ Multilingual Speech Synthesis System Using [VITS](https://github.com/jaywalnut31
 - [Prepare_Datasets](#Prepare_Datasets)
 - [Usage](#usage)
 - [Inference](#inference)
-- [Reference](#Reference)
+- [References](#References)
 
 ## Prerequisites
 - A Windows/Linux system with a minimum of `16GB` RAM.
