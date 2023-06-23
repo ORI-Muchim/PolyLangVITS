@@ -6,6 +6,7 @@ import json
 import math
 import torch
 import sys
+import langdetect
 from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
@@ -24,6 +25,20 @@ def get_text(text, hps):
     text_norm = torch.LongTensor(text_norm)
     return text_norm
 
+def langdetector(text):
+    try:
+        lang = langdetect.detect(text)
+        if lang == 'ko':
+            return f'[KO]{text}[KO]'
+        elif lang == 'ja':
+            return f'[JA]{text}[JA]'
+        elif lang == 'en':
+            return f'[EN]{text}[EN]'
+        elif lang == 'zh-cn':
+            return f'[ZH]{text}[ZH]'
+    except Exception as e:
+        return text
+
 hps = utils.get_hparams_from_file(f"./models/{sys.argv[1]}/config.json")
 
 net_g = SynthesizerTrn(
@@ -41,9 +56,15 @@ os.makedirs(output_dir, exist_ok=True)
 
 n_speakers = hps.data.n_speakers
 
+text = "让我们一起走向新的世界吧！"
+
+text = langdetector(text)
+
+print(text)
+
 for idx in range(5):
     sid = torch.LongTensor([idx]).cuda()
-    stn_tst = get_text("[KO]가장 밝게 빛나는 순간은 주위의 모든 것이 가장 어두울 때이다.[KO]", hps)
+    stn_tst = get_text(text, hps)
     with torch.no_grad():
         x_tst = stn_tst.cuda().unsqueeze(0)
         x_tst_lengths = torch.LongTensor([stn_tst.size(0)]).cuda()
