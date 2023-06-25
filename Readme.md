@@ -31,6 +31,9 @@ CUDA 11.7 install:
 Zlib DLL install:
 `https://docs.nvidia.com/deeplearning/cudnn/install-guide/index.html#install-zlib-windows`
 
+Install pyopenjtalk Manually:
+`pip install -U pyopenjtalk --no-build-isolation`
+
 ---
 
 ## Installation 
