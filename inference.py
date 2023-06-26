@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
+import os
 import sys
-import subprocess
 
 def main():
     if len(sys.argv) != 3:
@@ -12,15 +11,9 @@ def main():
 
     command = f"python ./vits/inferencems.py {model_name} {model_step}"
 
-    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    
-    for line in iter(process.stdout.readline, b''):
-        print(line.decode('utf-8'), end='')
-        
-    process.stdout.close()
-    process.wait()
+    return_code = os.system(command)
 
-    if process.returncode != 0:
+    if return_code != 0:
         print("Error occurred")
 
 if __name__ == "__main__":
