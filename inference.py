@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 import sys
 import subprocess
-import vits.utils
 
 def main():
     if len(sys.argv) != 2:
         print("Usage: python main.py {model_name}")
         sys.exit(1)
 
-    hps = vits.utils.get_hparams()
-
     model_name = sys.argv[1]
-    model_step = vits.utils.load_checkpoint(vits.utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"))
+    model_step = sys.argv[2]
 
     command = f"python ./vits/inferencems.py {model_name} {model_step}"
 

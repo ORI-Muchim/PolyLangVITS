@@ -128,10 +128,10 @@ python main_resume.py {model_name}
 ---
 ## Inference
 
-After the model has been trained, you can generate predictions by using the following command, replacing {model_name} with your respective values:
+After the model has been trained, you can generate predictions by using the following command, replacing {model_name} and {model_step} with your respective values:
 
 ```sh
-python inference.py {model_name}
+python inference.py {model_name} {model_step}
 ```
 
 ---
