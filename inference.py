@@ -3,8 +3,8 @@ import sys
 import subprocess
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python main.py {model_name}")
+    if len(sys.argv) != 3:
+        print("Usage: python main.py {model_name} {model_step}")
         sys.exit(1)
 
     model_name = sys.argv[1]
@@ -25,4 +25,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
