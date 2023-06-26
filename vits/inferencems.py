@@ -62,7 +62,7 @@ text = langdetector(text)
 
 print(text)
 
-for idx in range(5):
+for idx in range(n_speakers):
     sid = torch.LongTensor([idx]).cuda()
     stn_tst = get_text(text, hps)
     with torch.no_grad():
