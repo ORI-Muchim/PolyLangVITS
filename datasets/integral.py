@@ -321,6 +321,7 @@ def third_code(arg1, arg2):
                 modified_line = "." + line[1:].replace("\\", "/")
                 file.write(modified_line)
 
+    main()
 
 
 
