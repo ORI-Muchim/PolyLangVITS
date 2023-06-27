@@ -159,10 +159,10 @@ def get_hparams(init=True):
   if init:
     with open(config_path, "r", encoding="UTF-8") as f:
       data = f.read()
-    with open(config_save_path, "w") as f:
+    with open(config_save_path, "w", encoding='utf-8') as f:
       f.write(data)
   else:
-    with open(config_save_path, "r") as f:
+    with open(config_save_path, "r", encoding='utf-8') as f:
       data = f.read()
   config = json.loads(data)
   
