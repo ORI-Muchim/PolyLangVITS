@@ -320,12 +320,10 @@ class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):
             if idx_bucket != -1:
                 buckets[idx_bucket].append(i)
   
-        for i in range(len(buckets) - 1, 0, -1):
-            if len(buckets[i]) == 0:
-                buckets.pop(i)
-                self.boundaries.pop(i+1)
-  
+        # Remove empty buckets to avoid zero division
+        buckets = [bucket for bucket in buckets if len(bucket) > 0]
         num_samples_per_bucket = []
+        
         for i in range(len(buckets)):
             len_bucket = len(buckets[i])
             total_batch_size = self.num_replicas * self.batch_size
@@ -350,20 +348,21 @@ class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):
       for i in range(len(self.buckets)):
           bucket = self.buckets[i]
           len_bucket = len(bucket)
-          ids_bucket = indices[i]
-          num_samples_bucket = self.num_samples_per_bucket[i]
+          if len_bucket > 0:  # Only process if bucket is not empty
+              ids_bucket = indices[i]
+              num_samples_bucket = self.num_samples_per_bucket[i]
   
-          # add extra samples to make it evenly divisible
-          rem = num_samples_bucket - len_bucket
-          ids_bucket = ids_bucket + ids_bucket * (rem // len_bucket) + ids_bucket[:(rem % len_bucket)]
+              # add extra samples to make it evenly divisible
+              rem = num_samples_bucket - len_bucket
+              ids_bucket = ids_bucket + ids_bucket * (rem // len_bucket) + ids_bucket[:(rem % len_bucket)]
   
-          # subsample
-          ids_bucket = ids_bucket[self.rank::self.num_replicas]
+              # subsample
+              ids_bucket = ids_bucket[self.rank::self.num_replicas]
   
-          # batching
-          for j in range(len(ids_bucket) // self.batch_size):
-              batch = [bucket[idx] for idx in ids_bucket[j*self.batch_size:(j+1)*self.batch_size]]
-              batches.append(batch)
+              # batching
+              for j in range(len(ids_bucket) // self.batch_size):
+                  batch = [bucket[idx] for idx in ids_bucket[j*self.batch_size:(j+1)*self.batch_size]]
+                  batches.append(batch)
   
       if self.shuffle:
           batch_ids = torch.randperm(len(batches), generator=g).tolist()
