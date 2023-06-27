@@ -370,7 +370,7 @@ def create_config():
         "learning_rate": 2e-4,
         "betas": [0.8, 0.99],
         "eps": 1e-9,
-        "batch_size": 16,
+        "batch_size": 32,
         "fp16_run": True,
         "lr_decay": 0.999875,
         "segment_size": 8192,
@@ -392,7 +392,7 @@ def create_config():
         "mel_fmin": 0.0,
         "mel_fmax": None,
         "add_blank": True,
-        "n_speakers": 6,
+        "n_speakers": 500,
         "cleaned_text": True
     },
     "model": {
@@ -441,13 +441,6 @@ def sixth_code(arg1, arg2):
 
         config["data"]["sampling_rate"] = sample_rate
 
-    with open("speakers_list.txt", "r", encoding="utf-8") as file:
-        speakers = file.read().strip()
-
-    speakers = [s.strip().strip('"') for s in speakers.split(',')]
-
-    config["speakers"] = speakers
-
     if arg1 == "ko":
         config["data"]["text_cleaners"] = ["cjke_cleaners2"]
     elif arg1 == "ja":
@@ -456,9 +449,6 @@ def sixth_code(arg1, arg2):
         config["data"]["text_cleaners"] = ["cjke_cleaners2"]
     elif arg1 == "zh":
         config["data"]["text_cleaners"] = ["cjke_cleaners2"]
-
-    subdirs = [d for d in os.listdir('.') if os.path.isdir(d)]
-    config["data"]["n_speakers"] = len(subdirs)
 
     with open("config.json", "w", encoding="utf-8") as file:
         json.dump(config, file, ensure_ascii=False, indent=2)
