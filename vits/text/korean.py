@@ -1,6 +1,7 @@
 import re
 from jamo import h2j, j2hcj
 import ko_pron
+from g2pk2 import G2p
 
 
 # This is a list of Korean classifiers preceded by pure Korean numerals.
@@ -206,5 +207,9 @@ def korean_to_lazy_ipa(text):
 
 
 def korean_to_ipa(text):
+    text = latin_to_hangul(text)
+    text = number_to_hangul(text)
+    g2p = G2p()
+    text = g2p(text)
     text = korean_to_lazy_ipa(text)
     return text.replace('ʧ','tʃ').replace('ʥ','dʑ')
