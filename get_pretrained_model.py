@@ -30,4 +30,4 @@ print("Saving Discriminator Model...")
 with open(generator_model, 'wb') as file:
     file.write(response2.content)
 
-print("Saving Generator Model...")
+print("Saving Generator Model...\n")
