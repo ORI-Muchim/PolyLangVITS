@@ -16,8 +16,12 @@ if not os.path.exists(directory):
 discriminator_model = os.path.join(directory, 'D_0.pth')
 generator_model = os.path.join(directory, 'G_0.pth')
 
+print("Downloading Discriminator Model...")
+
 with open(discriminator_model, 'wb') as file:
     file.write(response1.content)
+
+print("Downloading Generator Model...")
 
 with open(generator_model, 'wb') as file:
     file.write(response2.content)
