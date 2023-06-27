@@ -54,7 +54,8 @@ _ = utils.load_checkpoint(f"./models/{sys.argv[1]}/G_{sys.argv[2]}.pth", net_g, 
 output_dir = f'./vitsoutput/{sys.argv[1]}'
 os.makedirs(output_dir, exist_ok=True)
 
-n_speakers = hps.data.n_speakers
+speakers = len([f for f in os.listdir('../datasets') if os.path.isdir(os.path.join('../datasets', f))])
+
 
 text = "让我们一起走向新的世界吧！"
 
@@ -62,7 +63,7 @@ text = langdetector(text)
 
 print(text)
 
-for idx in range(n_speakers):
+for idx in range(speakers):
     sid = torch.LongTensor([idx]).cuda()
     stn_tst = get_text(text, hps)
     with torch.no_grad():
