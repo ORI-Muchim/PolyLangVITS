@@ -1,4 +1,4 @@
-- # PolyLangVITS(Work In Process)
+- # PolyLangVITS
 
 Multilingual Speech Synthesis System Using [VITS](https://github.com/jaywalnut310/vits)
 
