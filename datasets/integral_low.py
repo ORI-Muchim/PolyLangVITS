@@ -567,7 +567,7 @@ def main():
     fifth_code(sys.argv[2])
     print("Successfully measured dataset length.\n")
 
-    print("All codes have been executed successfully.\n\n")
+    print("All codes have been executed successfully.\n")
 
 
 if __name__ == "__main__":
