@@ -54,7 +54,7 @@ _ = utils.load_checkpoint(f"./models/{sys.argv[1]}/G_{sys.argv[2]}.pth", net_g, 
 output_dir = f'./vitsoutput/{sys.argv[1]}'
 os.makedirs(output_dir, exist_ok=True)
 
-speakers = len([f for f in os.listdir('../datasets') if os.path.isdir(os.path.join('../datasets', f))])
+speakers = len([f for f in os.listdir('./datasets') if os.path.isdir(os.path.join('./datasets', f))])
 
 
 text = "让我们一起走向新的世界吧！"
