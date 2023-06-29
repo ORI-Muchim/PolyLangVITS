@@ -14,7 +14,7 @@ Multilingual Speech Synthesis System Using [VITS](https://github.com/jaywalnut31
 ## Prerequisites
 - A Windows/Linux system with a minimum of `16GB` RAM.
 - A GPU with at least `12GB` of VRAM.
-- Python >= 3.8
+- Python == 3.8
 - Anaconda installed.
 - PyTorch installed.
 - CUDA 11.x installed.
