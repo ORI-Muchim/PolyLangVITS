@@ -24,7 +24,6 @@ def japanese_cleaners2(text):
 def korean_cleaners(text):
     '''Pipeline for Korean text'''
     text = latin_to_hangul(text)
-    text = number_to_hangul(text)
     g2p = G2p()
     text = g2p(text)
     text = divide_hangul(text)
