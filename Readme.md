@@ -96,6 +96,10 @@ PolyLangVITS
 │       └integral_low.py
 │
 ├────vits
+├────get_pretrained_model.py
+├────inference.py
+├────main_low.py
+├────main_resume.py
 ├────main.py
 ├────Readme.md
 └────requirements.txt
