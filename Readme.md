@@ -6,7 +6,7 @@ Multilingual Speech Synthesis System Using [VITS](https://github.com/jaywalnut31
 ## Table of Contents 
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
-- [Prepare_Datasets](#prepare_Datasets)
+- [Prepare_Datasets](#prepare_datasets)
 - [Usage](#usage)
 - [Inference](#inference)
 - [References](#references)
