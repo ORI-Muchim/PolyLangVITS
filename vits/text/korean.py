@@ -9,7 +9,7 @@ _korean_classifiers = '군데 권 개 그루 닢 대 두 마리 모 모금 뭇 �
 
 # List of (hangul, hangul divided) pairs:
 _hangul_divided = [(re.compile('%s' % x[0]), x[1]) for x in [
-    # ('ㄳ', 'ㄱㅅ'),
+    # ('ㄳ', 'ㄱㅅ'),   # g2pk2, A Syllable-ending Rule
     # ('ㄵ', 'ㄴㅈ'),
     # ('ㄶ', 'ㄴㅎ'),
     # ('ㄺ', 'ㄹㄱ'),
