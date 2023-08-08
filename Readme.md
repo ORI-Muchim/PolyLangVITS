@@ -146,3 +146,4 @@ For more information, please refer to the following repositories:
 - [CjangCjengh/vits](https://github.com/CjangCjengh/vits.git)
 - [Kyubyong/g2pK](https://github.com/Kyubyong/g2pK)
 - [tenebo/g2pk2](https://github.com/tenebo/g2pk2)
+- [henrymass/AudioSlicer](https://github.com/henrymaas/AudioSlicer)
