@@ -22,7 +22,7 @@ import re
 
 
 def preprocessing_code(arg3):
-    def convert_mp3_to_wav(root_dir):
+    def convert_audio(root_dir):
         if not os.path.isdir(root_dir):
             raise ValueError("The provided root directory does not exist.")
 
@@ -44,25 +44,19 @@ def preprocessing_code(arg3):
             os.makedirs(wavs_dir)
 
             for file in files:
-                if file.endswith(".mp3"):
-                    mp3_filepath = os.path.join(subdir, file)
+                if file.endswith(".mp3") or file.endswith(".wav"):
+                    src_filepath = os.path.join(subdir, file)
                     wav_filename = os.path.splitext(file)[0] + ".wav"
                     wav_filepath = os.path.join(wavs_dir, wav_filename)
-                    print(f"Converting {mp3_filepath} to {wav_filepath}...")
+                    print(f"Converting {src_filepath} to {wav_filepath}...")
 
                     try:
-                        subprocess.run(["ffmpeg", "-i", mp3_filepath, "-ar", str(arg3), "-ac", "1", wav_filepath], check=True)
+                        subprocess.run(["ffmpeg", "-i", src_filepath, "-ar", str(arg3), "-ac", "1", wav_filepath], check=True)
                     except subprocess.CalledProcessError as e:
-                        print(f"Error while converting {mp3_filepath} to {wav_filepath}: {e}")
-
-                elif file.endswith(".wav"):
-                    wav_filepath = os.path.join(subdir, file)
-                    dest_filepath = os.path.join(wavs_dir, file)
-                    print(f"Moving {wav_filepath} to {dest_filepath}...")
-                    shutil.move(wav_filepath, dest_filepath)
+                        print(f"Error while converting {src_filepath} to {wav_filepath}: {e}")
 
     root_dir = "./"
-    convert_mp3_to_wav(root_dir)
+    convert_audio(root_dir)
 
 
 
