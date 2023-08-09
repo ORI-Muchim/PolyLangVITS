@@ -11,7 +11,7 @@ from text.english import english_to_lazy_ipa, english_to_ipa2, english_to_lazy_i
 #from text.ngu_dialect import ngu_dialect_to_ipa
 
 
-def replace_l_with_n(text):
+def fix_g2pk2_error(text):
     new_text = ""
     i = 0
     while i < len(text) - 4:
@@ -42,7 +42,7 @@ def korean_cleaners(text):
     g2p = G2p()
     text = g2p(text)
     text = divide_hangul(text)
-    text = replace_l_with_n(text)
+    text = fix_g2pk2_error(text)
     text = re.sub(r'([\u3131-\u3163])$', r'\1.', text)
     return text
 
