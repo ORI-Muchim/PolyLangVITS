@@ -11,6 +11,21 @@ from text.english import english_to_lazy_ipa, english_to_ipa2, english_to_lazy_i
 #from text.ngu_dialect import ngu_dialect_to_ipa
 
 
+def replace_l_with_n(text):
+    new_text = ""
+    i = 0
+    while i < len(text) - 4:
+        if (text[i:i+3] == 'ㅇㅡㄹ' or text[i:i+3] == 'ㄹㅡㄹ') and text[i+3] == ' ' and text[i+4] == 'ㄹ':
+            new_text += text[i:i+3] + ' ' + 'ㄴ'
+            i += 5
+        else:
+            new_text += text[i]
+            i += 1
+
+    new_text += text[i:]
+    return new_text
+
+
 def japanese_cleaners(text):
     text = japanese_to_romaji_with_accent(text)
     text = re.sub(r'([A-Za-z])$', r'\1.', text)
@@ -27,6 +42,7 @@ def korean_cleaners(text):
     g2p = G2p()
     text = g2p(text)
     text = divide_hangul(text)
+    text = replace_l_with_n(text)
     text = re.sub(r'([\u3131-\u3163])$', r'\1.', text)
     return text
 
