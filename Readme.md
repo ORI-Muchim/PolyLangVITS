@@ -137,6 +137,10 @@ After the model has been trained, you can generate predictions by using the foll
 ```sh
 python inference.py {model_name} {model_step}
 ```
+For text to speech inference, use the following:
+```sh
+python inference-stt.py {model_name} {model_step}
+```
 
 ---
 ## References
