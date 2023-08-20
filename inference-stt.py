@@ -43,7 +43,7 @@ def micinput(threshold):
     stream.close()
     p.terminate()
 
-    model = whisper.load_model("small")
+    model = whisper.load_model("large-v2")
     audio = whisper.pad_or_trim(np.frombuffer(b''.join(frames), dtype=np.int16).astype(np.float32) / 2 ** 15)
     mel = whisper.log_mel_spectrogram(audio).to(model.device)
 

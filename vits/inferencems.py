@@ -96,7 +96,7 @@ else:
 
     speakers = len([f for f in os.listdir('./datasets') if os.path.isdir(os.path.join('./datasets', f))])
 
-    text = "PUT YOUR TEXT HERE！"
+    text = "안녕하세요!"
 
     text = langdetector(text)
 
