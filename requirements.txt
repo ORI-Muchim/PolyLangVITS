@@ -82,6 +82,7 @@ numba==0.56.4
 numpy==1.23.0
 oauthlib==3.2.2
 onnxruntime==1.15.0
+openai-whisper==20230314
 outcome==1.2.0
 packaging==23.1
 pandas==1.2.4
@@ -99,6 +100,7 @@ protobuf==3.20.1
 pure-eval==0.2.2
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
+pyaudio==0.2.13
 pycparser==2.21
 pydantic==1.10.7
 pydub==0.25.1
