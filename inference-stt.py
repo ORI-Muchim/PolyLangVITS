@@ -59,7 +59,7 @@ def main():
         print("Usage: python inference-stt.py {model_name} {model_step}\nOR\npython inference-stt.py {model_name} {model_step} {text}")
         sys.exit(1)
     elif len(sys.argv) == 3:
-        mic_threshold = 1000  # threshold to define empty input
+        mic_threshold = 500  # threshold to define empty input
         text = micinput(mic_threshold)
         model_name = sys.argv[1]
         model_step = sys.argv[2]
