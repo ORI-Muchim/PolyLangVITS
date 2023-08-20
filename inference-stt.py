@@ -1,6 +1,5 @@
 import os
 import sys
-import vits.inferencems as ims
 import pyaudio
 import whisper
 import numpy as np
@@ -17,6 +16,7 @@ def micinput(threshold):
 
     print(f"Beginning voice input sequence\nThis sequence ends after {maxdur} seconds of inactivity")
     frames = []
+    subf = []
     p = pyaudio.PyAudio()
     stream = p.open(format=pyaudio.paInt16, channels=1, rate=sampling, input=True, frames_per_buffer=1024)
     elt = 0
@@ -28,13 +28,15 @@ def micinput(threshold):
         data = stream.read(1024)
         et = time.time()
         frames.append(data)
+        subf.append(data)
 
         if elt >= maxdur:
             break
-        elif stopper(np.frombuffer(b''.join(frames), dtype=np.int16)) < threshold:
+        elif stopper(np.frombuffer(b''.join(subf), dtype=np.int16)) < threshold:
             elt += et - st
         else:
             elt = 0
+        subf = []
 
     print("Voice input sequence end")
     stream.stop_stream()
@@ -53,17 +55,30 @@ def micinput(threshold):
 
 
 def main():
-    if len(sys.argv) != 3:
-        print("Usage: python inference-stt.py {model_name} {model_step}")
+    if len(sys.argv) != 3 or len(sys.argv) != 4:
+        print("Usage: python inference-stt.py {model_name} {model_step}\nOR\npython inference-stt.py {model_name} {model_step} {text}")
         sys.exit(1)
-
-    mic_threshold = 1000 # threshold to define empty input
-
-    try:
+    elif len(sys.argv) == 3:
+        mic_threshold = 1000  # threshold to define empty input
         text = micinput(mic_threshold)
-        ims.submodule(text)
-    except:
-        print("Error occurred")
+        model_name = sys.argv[1]
+        model_step = sys.argv[2]
+
+        command = f"python ./vits/inferencems.py {model_name} {model_step} {text}"
+        return_code = os.system(command)
+
+        if return_code != 0:
+            print("Error occurred")
+    elif len(sys.argv) == 4:
+        model_name = sys.argv[1]
+        model_step = sys.argv[2]
+        text = sys.argv[3]
+
+        command = f"python ./vits/inferencems.py {model_name} {model_step} {text}"
+        return_code = os.system(command)
+
+        if return_code != 0:
+            print("Error occurred")
 
 
 
