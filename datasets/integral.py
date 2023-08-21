@@ -37,23 +37,24 @@ def preprocessing_code(arg3):
 
             wavs_dir = os.path.join(subdir, "wavs")
 
-            if os.path.exists(wavs_dir):
-                print(f"'wavs' directory already exists in {subdir}. Skipping conversion.")
-                continue
-
-            os.makedirs(wavs_dir)
+            if not os.path.exists(wavs_dir):
+                os.makedirs(wavs_dir)
 
             for file in files:
                 if file.endswith(".mp3") or file.endswith(".wav"):
                     src_filepath = os.path.join(subdir, file)
                     wav_filename = os.path.splitext(file)[0] + ".wav"
                     wav_filepath = os.path.join(wavs_dir, wav_filename)
-                    print(f"Converting {src_filepath} to {wav_filepath}...")
+                    
+                    if not os.path.exists(wav_filepath):  # Check if file has already been converted
+                        print(f"Converting {src_filepath} to {wav_filepath}...")
 
-                    try:
-                        subprocess.run(["ffmpeg", "-i", src_filepath, "-ar", str(arg3), "-ac", "1", wav_filepath], check=True)
-                    except subprocess.CalledProcessError as e:
-                        print(f"Error while converting {src_filepath} to {wav_filepath}: {e}")
+                        try:
+                            subprocess.run(["ffmpeg", "-i", src_filepath, "-ar", str(arg3), "-ac", "1", wav_filepath], check=True)
+                        except subprocess.CalledProcessError as e:
+                            print(f"Error while converting {src_filepath} to {wav_filepath}: {e}")
+                        except Exception as e:
+                            print(f"An error occurred: {e}")
 
     root_dir = "./"
     convert_audio(root_dir)
