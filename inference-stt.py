@@ -13,20 +13,19 @@ def stopper(indata):
 def micinput(threshold):
     sampling = 16000
     maxdur = 3
+    print(f"Beginning voice input sequence\n** This sequence ends after {maxdur} seconds of inactivity **")
+    maxdur = float(maxdur)
 
-    print(f"Beginning voice input sequence\nThis sequence ends after {maxdur} seconds of inactivity")
     frames = []
     subf = []
     p = pyaudio.PyAudio()
     stream = p.open(format=pyaudio.paInt16, channels=1, rate=sampling, input=True, frames_per_buffer=1024)
-    elt = 0
-    st = float(0)
-    et = float(0)
+    elt: float = 0.0
 
     while True:
-        st = time.time()
+        st: float = time.time()
         data = stream.read(1024)
-        et = time.time()
+        et: float = time.time()
         frames.append(data)
         subf.append(data)
 
@@ -35,7 +34,7 @@ def micinput(threshold):
         elif stopper(np.frombuffer(b''.join(subf), dtype=np.int16)) < threshold:
             elt += et - st
         else:
-            elt = 0
+            elt: float = 0.0
         subf = []
 
     print("Voice input sequence end")
@@ -55,10 +54,7 @@ def micinput(threshold):
 
 
 def main():
-    if len(sys.argv) != 3 or len(sys.argv) != 4:
-        print("Usage: python inference-stt.py {model_name} {model_step}\nOR\npython inference-stt.py {model_name} {model_step} {text}")
-        sys.exit(1)
-    elif len(sys.argv) == 3:
+    if len(sys.argv) == 3:
         mic_threshold = 500  # threshold to define empty input
         text = micinput(mic_threshold)
         model_name = sys.argv[1]
@@ -69,18 +65,23 @@ def main():
 
         if return_code != 0:
             print("Error occurred")
-    elif len(sys.argv) == 4:
+    elif len(sys.argv) > 3:
         model_name = sys.argv[1]
         model_step = sys.argv[2]
         text = sys.argv[3]
+
+        if len(sys.argv) > 4: # in case when a user passes a sentence level text without quotation marks
+            for i in range(4, len(sys.argv)+1):
+                text += " " + sys.argv[i]
 
         command = f"python ./vits/inferencems.py {model_name} {model_step} {text}"
         return_code = os.system(command)
 
         if return_code != 0:
             print("Error occurred")
-
-
+    else:
+        print("Usage: python inference-stt.py {model_name} {model_step}\nOR\npython inference-stt.py {model_name} {model_step} {text}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -40,85 +40,6 @@ def langdetector(text):
         return text
 
 
-if len(sys.argv) == 4:
-    hps = utils.get_hparams_from_file(f"./models/{sys.argv[1]}/config.json")
-
-    net_g = SynthesizerTrn(
-        len(symbols),
-        hps.data.filter_length // 2 + 1,
-        hps.train.segment_size // hps.data.hop_length,
-        n_speakers=hps.data.n_speakers,
-        **hps.model).cuda()
-    _ = net_g.eval()
-
-    _ = utils.load_checkpoint(f"./models/{sys.argv[1]}/G_{sys.argv[2]}.pth", net_g, None)
-
-    output_dir = f'./vitsoutput/{sys.argv[1]}'
-    os.makedirs(output_dir, exist_ok=True)
-
-    speakers = len([f for f in os.listdir('./datasets') if os.path.isdir(os.path.join('./datasets', f))])
-
-    text = sys.argv[3]
-
-    text = langdetector(text)
-
-    print(text)
-
-    speed = 1
-
-    for idx in range(speakers):
-        sid = torch.LongTensor([idx]).cuda()
-        stn_tst = get_text(text, hps)
-        with torch.no_grad():
-            x_tst = stn_tst.cuda().unsqueeze(0)
-            x_tst_lengths = torch.LongTensor([stn_tst.size(0)]).cuda()
-            audio = \
-            net_g.infer(x_tst, x_tst_lengths, sid=sid, noise_scale=.667, noise_scale_w=0.8, length_scale=1 / speed)[0][
-                0, 0].data.cpu().float().numpy()
-        write(f'{output_dir}/output{idx}.wav', hps.data.sampling_rate, audio)
-        print(f'{output_dir}/output{idx}.wav Generated!')
-
-else:
-    hps = utils.get_hparams_from_file(f"./models/{sys.argv[1]}/config.json")
-
-    net_g = SynthesizerTrn(
-        len(symbols),
-        hps.data.filter_length // 2 + 1,
-        hps.train.segment_size // hps.data.hop_length,
-        n_speakers=hps.data.n_speakers,
-        **hps.model).cuda()
-    _ = net_g.eval()
-
-    _ = utils.load_checkpoint(f"./models/{sys.argv[1]}/G_{sys.argv[2]}.pth", net_g, None)
-
-    output_dir = f'./vitsoutput/{sys.argv[1]}'
-    os.makedirs(output_dir, exist_ok=True)
-
-    speakers = len([f for f in os.listdir('./datasets') if os.path.isdir(os.path.join('./datasets', f))])
-
-    text = "안녕하세요!"
-
-    text = langdetector(text)
-
-    print(text)
-
-    speed = 1
-
-    for idx in range(speakers):
-        sid = torch.LongTensor([idx]).cuda()
-        stn_tst = get_text(text, hps)
-        with torch.no_grad():
-            x_tst = stn_tst.cuda().unsqueeze(0)
-            x_tst_lengths = torch.LongTensor([stn_tst.size(0)]).cuda()
-            audio = \
-            net_g.infer(x_tst, x_tst_lengths, sid=sid, noise_scale=.667, noise_scale_w=0.8, length_scale=1 / speed)[0][
-                0, 0].data.cpu().float().numpy()
-        write(f'{output_dir}/output{idx}.wav', hps.data.sampling_rate, audio)
-        print(f'{output_dir}/output{idx}.wav Generated!')
-
-
-
-'''
 hps = utils.get_hparams_from_file(f"./models/{sys.argv[1]}/config.json")
 
 net_g = SynthesizerTrn(
@@ -136,17 +57,16 @@ os.makedirs(output_dir, exist_ok=True)
 
 speakers = len([f for f in os.listdir('./datasets') if os.path.isdir(os.path.join('./datasets', f))])
 
-
-text = "让我们一起走向新的世界吧！"
+if len(sys.argv) == 4:
+    text = sys.argv[3] # text from STT or direct text input
+else:
+    text = "안녕하세요!"
 
 text = langdetector(text)
-
 print(text)
 
 speed = 1
-'''
 
-'''
 for idx in range(speakers):
     sid = torch.LongTensor([idx]).cuda()
     stn_tst = get_text(text, hps)
@@ -156,4 +76,3 @@ for idx in range(speakers):
         audio = net_g.infer(x_tst, x_tst_lengths, sid=sid, noise_scale=.667, noise_scale_w=0.8, length_scale=1 / speed)[0][0,0].data.cpu().float().numpy()
     write(f'{output_dir}/output{idx}.wav', hps.data.sampling_rate, audio)
     print(f'{output_dir}/output{idx}.wav Generated!')
-'''
