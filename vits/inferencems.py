@@ -58,7 +58,7 @@ os.makedirs(output_dir, exist_ok=True)
 speakers = len([f for f in os.listdir('./datasets') if os.path.isdir(os.path.join('./datasets', f))])
 
 if len(sys.argv) == 4:
-    text = sys.argv[3] # retrieval from STT or direct text input
+    text = sys.argv[3] # text from STT or direct text input
 else:
     text = "안녕하세요!"
 
