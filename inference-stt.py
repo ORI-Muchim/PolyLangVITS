@@ -19,14 +19,12 @@ def micinput(threshold):
     subf = []
     p = pyaudio.PyAudio()
     stream = p.open(format=pyaudio.paInt16, channels=1, rate=sampling, input=True, frames_per_buffer=1024)
-    elt = 0
-    st = float(0)
-    et = float(0)
+    elt: float = 0.0
 
     while True:
-        st = time.time()
+        st: float = time.time()
         data = stream.read(1024)
-        et = time.time()
+        et: float = time.time()
         frames.append(data)
         subf.append(data)
 
@@ -35,7 +33,7 @@ def micinput(threshold):
         elif stopper(np.frombuffer(b''.join(subf), dtype=np.int16)) < threshold:
             elt += et - st
         else:
-            elt = 0
+            elt: float = 0.0
         subf = []
 
     print("Voice input sequence end")
