@@ -55,10 +55,7 @@ def micinput(threshold):
 
 
 def main():
-    if len(sys.argv) != 3 or len(sys.argv) != 4:
-        print("Usage: python inference-stt.py {model_name} {model_step}\nOR\npython inference-stt.py {model_name} {model_step} {text}")
-        sys.exit(1)
-    elif len(sys.argv) == 3:
+    if len(sys.argv) == 3:
         mic_threshold = 500  # threshold to define empty input
         text = micinput(mic_threshold)
         model_name = sys.argv[1]
@@ -69,18 +66,23 @@ def main():
 
         if return_code != 0:
             print("Error occurred")
-    elif len(sys.argv) == 4:
+    elif len(sys.argv) > 3:
         model_name = sys.argv[1]
         model_step = sys.argv[2]
         text = sys.argv[3]
+
+        if len(sys.argv) > 4: # in case when a user passes a sentence level text without quotation marks
+            for i in range(4, len(sys.argv)+1):
+                text += " " + sys.argv[i]
 
         command = f"python ./vits/inferencems.py {model_name} {model_step} {text}"
         return_code = os.system(command)
 
         if return_code != 0:
             print("Error occurred")
-
-
+    else:
+        print("Usage: python inference-stt.py {model_name} {model_step}\nOR\npython inference-stt.py {model_name} {model_step} {text}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
