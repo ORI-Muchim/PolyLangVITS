@@ -35,9 +35,7 @@ Install pyopenjtalk Manually:
 `pip install -U pyopenjtalk --no-build-isolation`
 
 If this command does not install, please install the following library before proceeding:
-`cmake`
-
-`Cython`
+`cmake` `Cython`
 
 ---
 
