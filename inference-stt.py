@@ -13,7 +13,7 @@ def stopper(indata):
 def micinput(threshold):
     sampling = 16000
     maxdur = 3
-    print(f"Beginning voice input sequence\nThis sequence ends after {maxdur} seconds of inactivity")
+    print(f"Beginning voice input sequence\n** This sequence ends after {maxdur} seconds of inactivity **")
     maxdur = float(maxdur)
 
     frames = []
