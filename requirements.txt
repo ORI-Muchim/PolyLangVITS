@@ -24,7 +24,7 @@ coloredlogs==15.0.1
 colorlog==6.7.0
 coverage==5.5
 csvw==3.1.3
-ctranslate2==3.14.0
+ctranslate2>=3.17
 cycler==0.11.0
 Cython==0.29.21
 decorator==5.1.1
