@@ -3,7 +3,7 @@ import sys
 
 def main():
     if len(sys.argv) != 3:
-        print("Usage: python main.py {model_name} {model_step}")
+        print("Usage: python inference.py {model_name} {model_step}")
         sys.exit(1)
 
     model_name = sys.argv[1]
