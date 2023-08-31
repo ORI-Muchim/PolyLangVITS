@@ -36,6 +36,8 @@ def langdetector(text):
             return f'[EN]{text}[EN]'
         elif lang == 'zh-cn':
             return f'[ZH]{text}[ZH]'
+        else:
+            return text
     except Exception as e:
         return text
 
