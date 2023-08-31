@@ -207,15 +207,12 @@ def first_code():
 
         # Call slicing function and save the processed file in the temp_folder
         slicing(wav_loc, temp_folder)
-        
-        # Move the processed file(s) from temp_folder to the wav_folder
+
         for temp_wav_path in os.listdir(temp_folder):
             if temp_wav_path.endswith(".wav"):
                 temp_wav_loc = os.path.join(temp_folder, temp_wav_path)
                 shutil.move(temp_wav_loc, os.path.join(wav_folder, temp_wav_path))
         
-        
-        # Remove the temp folder
         if os.path.exists(temp_folder):
             shutil.rmtree(temp_folder)
 
