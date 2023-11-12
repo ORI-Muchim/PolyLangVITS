@@ -2,36 +2,31 @@ import requests
 import sys
 import os
 
-gen = f"./models/{sys.argv[2]}/G_0.pth"
+def download_file(url, path):
+    print(f"Downloading {os.path.basename(path)}...")
+    response = requests.get(url, allow_redirects=True)
+    with open(path, 'wb') as file:
+        file.write(response.content)
+    print(f"Saved {os.path.basename(path)}.")
 
-if not os.path.isfile(gen):
-    url1 = 'https://github.com/ORI-Muchim/PolyLangVITS/releases/download/v1.0/D_0.pth'
-    url2 = 'https://github.com/ORI-Muchim/PolyLangVITS/releases/download/v1.0/G_0.pth'
+def get_model(model_type):
+    gen = f"./models/{model_type}/G_0.pth"
+    if not os.path.isfile(gen):
+        model_urls = {
+            'D_0.pth': 'https://github.com/ORI-Muchim/PolyLangVITS/releases/download/v1.0/D_0.pth',
+            'G_0.pth': 'https://github.com/ORI-Muchim/PolyLangVITS/releases/download/v1.0/G_0.pth'
+        }
 
-    print("Downloading Discriminator Model...")
+        directory = f'./models/{model_type}'
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
-    response1 = requests.get(url1, allow_redirects=True)
+        for filename, url in model_urls.items():
+            file_path = os.path.join(directory, filename)
+            download_file(url, file_path)
+    else:
+        print('Skipping Download... Model exists.')
 
-    print("Downloading Generator Model...")
-
-    response2 = requests.get(url2, allow_redirects=True)
-
-    directory = f'./models/{sys.argv[2]}'
-
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-    discriminator_model = os.path.join(directory, 'D_0.pth')
-    generator_model = os.path.join(directory, 'G_0.pth')
-
-    with open(discriminator_model, 'wb') as file:
-        file.write(response1.content)
-
-    print("Saving Discriminator Model...")
-
-    with open(generator_model, 'wb') as file:
-        file.write(response2.content)
-
-    print("Saving Generator Model...\n")
-else:
-    print('Skipping Download... Model exists.')
+if __name__ == "__main__":
+    model_type = sys.argv[2]
+    get_model(model_type)
